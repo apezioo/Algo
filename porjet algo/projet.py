@@ -225,6 +225,44 @@ class Jeu:
             )
             current_position = player_positions(self.__dernier_bouton_clique)
 
+            if self.check_cross_alignment(current_position):
+                self.end2()
+
+        return True
+
+    def check_cross_alignment(self, current_position):
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+
+    def check_cross_alignment(self, current_position):
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+
+        for direction in directions:
+            count = 0  # Initialize count to 0
+
+            for factor in [-1, 1]:
+                i, j = current_position
+                for _ in range(5):  # Check the next 5 positions in the specified direction
+                    i += factor * direction[0]
+                    j += factor * direction[1]
+
+                    if not (0 <= i < self.__grid_size and 0 <= j < self.__grid_size):
+                        break  # Break if we go out of bounds
+
+                    if (i, j) in self.__cross_positions[f'joueur{3 - self.__joueur}']:
+                        count += 1
+
+                    if count >= 5:
+                        return True
+
+        return False
+
+    def check_end_game2(self):
+        if self.__turn >= 2:
+            player_positions = (
+                Pion.get_button_rouge_position if self.__joueur == 1 else Pion.get_button_bleu_position
+            )
+            current_position = player_positions(self.__dernier_bouton_clique)
+
             for button, info in self.__etat_boutons.items():
                 i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
                 if info['etat'] == 0 and self.valid_move(current_position, (i, j)):
@@ -262,7 +300,7 @@ class Jeu:
                     self.__etat_boutons[self.__avantdernier_bouton_clique]['image'] = croix_rouge1                                  # Sert à stocker le nouvel état de la case cliqué                
                     self.__avantdernier_bouton_clique.configure(image=croix_rouge1)
                     self.__avantdernier_bouton_clique.image = croix_rouge1                                                          # Servent à afficher l'image à l'endroit souhaité
-
+                    
             self.__avantdernier_bouton_clique = self.__dernier_bouton_clique                                                        
             self.__dernier_bouton_clique = button                                                                               # Servent à mettre a jour le rond rouge précedent en croix rouge
 
@@ -301,50 +339,25 @@ class Jeu:
             elif self.__joueur == 2:
                 self.__cross_positions['joueur1'].append((i, j))
             
-        if self.check_alignment():
-            self.end()
+            self.check_end_game()
+            self.check_end_game2()
 
-        print(self.__cross_positions)
-
-    def check_alignment(self):
-        current_player_positions = self.__cross_positions[f'joueur{self.__joueur}']
-
-        # Check horizontal alignment
-        if self.check_line_alignment(current_player_positions, 0, 1):
-            return True
-
-        # Check vertical alignment
-        if self.check_line_alignment(current_player_positions, 1, 0):
-            return True
-
-        # Check diagonal alignment (from top-left to bottom-right)
-        if self.check_line_alignment(current_player_positions, 1, 1):
-            return True
-
-        # Check diagonal alignment (from top-right to bottom-left)
-        if self.check_line_alignment(current_player_positions, 1, -1):
-            return True
-
-        return False
-
-    def check_line_alignment(self, positions, row_increment, col_increment):
-        for i, j in positions:
-            count = 0
-            for k in range(5):  # Check the next 5 positions in the specified direction
-                if (i + k * row_increment, j + k * col_increment) in positions:
-                    count += 1
-            if count == 5:
-                return True
-        return False
+            print(self.__cross_positions)
 
     def end(self):
-        if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur%3}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
+        if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
             self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
             Jeu(self.v.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
         else :
             self.__root.destroy()                                                                                                                                           # Sert à fermer le programme en cas de réponse négative                                                                       
 
-
+    def end2(self):
+        if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {3 - self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
+            self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
+            Jeu(self.v.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
+        else :
+            self.__root.destroy()                                                                                                                                           # Sert à fermer le programme en cas de réponse négative   
+    
     def start_game():
         Acceuil.__root1.destroy()
         Jeu()
