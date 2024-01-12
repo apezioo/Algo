@@ -232,7 +232,6 @@ class Jeu:
                     return False
         self.end()
 
-
     def circle_placement(self, event):
         button = event.widget
 
@@ -264,6 +263,7 @@ class Jeu:
                     self.__etat_boutons[self.__avantdernier_bouton_clique]['image'] = croix_rouge1                                  # Sert à stocker le nouvel état de la case cliqué                
                     self.__avantdernier_bouton_clique.configure(image=croix_rouge1)
                     self.__avantdernier_bouton_clique.image = croix_rouge1                                                          # Servent à afficher l'image à l'endroit souhaité
+                    self.win_con
 
             self.__avantdernier_bouton_clique = self.__dernier_bouton_clique                                                        
             self.__dernier_bouton_clique = button                                                                               # Servent à mettre a jour le rond rouge précedent en croix rouge
@@ -281,6 +281,7 @@ class Jeu:
                     self.__etat_boutons[self.__avantdernier_bouton_clique]['image'] = croix_bleu1                                   # Sert à stocker le nouvel état de la case cliqué
                     self.__avantdernier_bouton_clique.configure(image=croix_bleu1)
                     self.__avantdernier_bouton_clique.image = croix_bleu1                                                           # Sert à afficher l'image à l'endroit souhaité
+                    self.win_con()
 
             self.__avantdernier_bouton_clique = self.__dernier_bouton_clique
             self.__dernier_bouton_clique = button                                                                               # Servent à mettre a jour le rond bleu précedent en croix bleu
@@ -294,12 +295,40 @@ class Jeu:
 
         self.__text4.config(text=f"Joueur : {self.__joueur}")                                                                   # Sert à modifier l'affichage "Joueur : " en alternant 1 et 2
         self.__text5.config(text=f"Tour n° : {self.__turn+1}")                                                                  # Sert à ajouter 1 à chaque tour pour l'affichage du Tour)
-
+            
         if self.__turn >= 2:
             self.check_end_game()
 
+    def win_con(self, align=2):
+        i = 0
+        j = 0
+        l = [[' ' for _ in range(self.__grid_size)] for _ in range(self.__grid_size)]
+
+        def print_nested_list(nested_list):
+            for row in nested_list:
+                for element in row:
+                    print(element, end=' ')  # Use '\t' for tab spacing between elements
+                print()  # Move to the next line for the next row
+
+        for k in self.__etat_boutons.items():
+            if dict(k[1])["image"] is not None:
+                print("image found")
+                if self.__joueur == 1:
+                    l[i][j] = 'R'
+                    self.__joueur = 3 - self.__joueur  
+                else:
+                    l[i][j] = 'B'
+                    self.__joueur = 3 - self.__joueur  
+
+            i += 1
+            if i == self.__grid_size:
+                i = 0
+                j += 1
+
+        print_nested_list(l)
+
     def end(self):
-        if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
+        if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur%3}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
             self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
             Jeu(self.v.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
         else :
