@@ -111,8 +111,7 @@ class Jeu:
         mixer.music.set_volume(1)
         mixer.music.play(-1)
 
-        self.__croix_positions_joueur1 = []
-        self.__croix_positions_joueur2 = []
+        self.__cross_positions = {'joueur1': [], 'joueur2': []}
 
         self.__etat_boutons = {}                                # création d'un dictionnaire pour gérer l'état des cases
 
@@ -263,7 +262,6 @@ class Jeu:
                     self.__etat_boutons[self.__avantdernier_bouton_clique]['image'] = croix_rouge1                                  # Sert à stocker le nouvel état de la case cliqué                
                     self.__avantdernier_bouton_clique.configure(image=croix_rouge1)
                     self.__avantdernier_bouton_clique.image = croix_rouge1                                                          # Servent à afficher l'image à l'endroit souhaité
-                    self.win_con
 
             self.__avantdernier_bouton_clique = self.__dernier_bouton_clique                                                        
             self.__dernier_bouton_clique = button                                                                               # Servent à mettre a jour le rond rouge précedent en croix rouge
@@ -281,14 +279,13 @@ class Jeu:
                     self.__etat_boutons[self.__avantdernier_bouton_clique]['image'] = croix_bleu1                                   # Sert à stocker le nouvel état de la case cliqué
                     self.__avantdernier_bouton_clique.configure(image=croix_bleu1)
                     self.__avantdernier_bouton_clique.image = croix_bleu1                                                           # Sert à afficher l'image à l'endroit souhaité
-                    self.win_con()
 
             self.__avantdernier_bouton_clique = self.__dernier_bouton_clique
             self.__dernier_bouton_clique = button                                                                               # Servent à mettre a jour le rond bleu précedent en croix bleu
 
         self.__etat_boutons[button]['etat'] = 1
         button.configure(state=DISABLED)                                                                                        # Servent à désactiver le bouton si il à déjà été cliqué
-    
+
         self.__joueur = 3 - self.__joueur                                                                                       # Sert à effectuer le roulement des joueurs
 
         self.__turn += 1                                                                                                        # Sert à ajouter 1 à self.__turn à chaque pion posé pout gérer le placement des croix
@@ -296,36 +293,49 @@ class Jeu:
         self.__text4.config(text=f"Joueur : {self.__joueur}")                                                                   # Sert à modifier l'affichage "Joueur : " en alternant 1 et 2
         self.__text5.config(text=f"Tour n° : {self.__turn+1}")                                                                  # Sert à ajouter 1 à chaque tour pour l'affichage du Tour)
             
-        if self.__turn >= 2:
-            self.check_end_game()
+        if self.__turn >= 3:
+            # Add cross positions to the dictionary
+            i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
+            if self.__joueur == 1:
+                self.__cross_positions['joueur2'].append((i, j))
+            elif self.__joueur == 2:
+                self.__cross_positions['joueur1'].append((i, j))
+            
+        if self.check_alignment():
+            self.end()
 
-    def win_con(self, align=2):
-        i = 0
-        j = 0
-        l = [[' ' for _ in range(self.__grid_size)] for _ in range(self.__grid_size)]
+        print(self.__cross_positions)
 
-        def print_nested_list(nested_list):
-            for row in nested_list:
-                for element in row:
-                    print(element, end=' ')  # Use '\t' for tab spacing between elements
-                print()  # Move to the next line for the next row
+    def check_alignment(self):
+        current_player_positions = self.__cross_positions[f'joueur{self.__joueur}']
 
-        for k in self.__etat_boutons.items():
-            if dict(k[1])["image"] is not None:
-                print("image found")
-                if self.__joueur == 1:
-                    l[i][j] = 'R'
-                    self.__joueur = 3 - self.__joueur  
-                else:
-                    l[i][j] = 'B'
-                    self.__joueur = 3 - self.__joueur  
+        # Check horizontal alignment
+        if self.check_line_alignment(current_player_positions, 0, 1):
+            return True
 
-            i += 1
-            if i == self.__grid_size:
-                i = 0
-                j += 1
+        # Check vertical alignment
+        if self.check_line_alignment(current_player_positions, 1, 0):
+            return True
 
-        print_nested_list(l)
+        # Check diagonal alignment (from top-left to bottom-right)
+        if self.check_line_alignment(current_player_positions, 1, 1):
+            return True
+
+        # Check diagonal alignment (from top-right to bottom-left)
+        if self.check_line_alignment(current_player_positions, 1, -1):
+            return True
+
+        return False
+
+    def check_line_alignment(self, positions, row_increment, col_increment):
+        for i, j in positions:
+            count = 0
+            for k in range(5):  # Check the next 5 positions in the specified direction
+                if (i + k * row_increment, j + k * col_increment) in positions:
+                    count += 1
+            if count == 5:
+                return True
+        return False
 
     def end(self):
         if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur%3}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
