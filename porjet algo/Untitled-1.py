@@ -71,3 +71,17 @@
 
         self.__text4.config(text=f"Joueur : {self.__joueur}")                                                                   # Sert à modifier l'affichage "Joueur : " en alternant 1 et 2
         self.__text5.config(text=f"Tour n° : {self.__turn+1}")                                                                  # Sert à ajouter 1 à chaque tour pour l'affichage du Tour)
+
+
+    def check_end_game2(self):
+        if self.__turn >= 2:
+            player_positions = (
+                Pion.get_button_rouge_position if self.__joueur == 1 else Pion.get_button_bleu_position
+            )
+            current_position = player_positions(self.__dernier_bouton_clique)
+
+            for button, info in self.__etat_boutons.items():
+                i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
+                if info['etat'] == 0 and self.valid_move(current_position, (i, j)):
+                    return False
+        self.end()

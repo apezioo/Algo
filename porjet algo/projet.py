@@ -22,26 +22,23 @@ class Pion:
 
 class Acceuil:
     def __init__(self):
-        self.__root1 = Tk()
-        self.__root1.title("Acceuil")
-        self.__root1.geometry("1000x1000")
+        self.__root1 = Tk()                                    # Sert à initiliser le tkinter
+        self.__root1.title("Acceuil")                          # Sert à définir le titre de la page
+        self.__root1.geometry("1000x1000")                     # Sert à définir les dimensions de la page 
 
-        mixer.init()
-        mixer.music.load("music/music1.mp3")
-        mixer.music.set_volume(1)
-        mixer.music.play(-1)
+        mixer.init()                                            # Sert à initier une musique sur la fenêtre de jeu
+        mixer.music.load("music/music1.mp3")                    # Sert à importer la musique 
+        mixer.music.set_volume(1)                               # Sert à définir le volume
+        mixer.music.play(-1)                                    # Sert à lancer la musique et faire en sorte qu'elle ne s'arrete jamais avec "-1"
 
         self.__frame1 = Frame(self.__root1, bg="black")
-        self.__frame1.pack(side=TOP, fill=BOTH, expand=True)
-
-        self.__root1.grid_rowconfigure(0, weight=1)
-        self.__root1.grid_columnconfigure(0, weight=1)
+        self.__frame1.pack(fill=BOTH, expand=True)              # Sert à créer et afficher le frame 1 et faire en sorte qu'il fasse toute la page
 
         style = ttk.Style()
-        style.configure("TButton", foreground="black", background="black", font=("Helvetica", 12), padding=(40, 20))
+        style.configure("StyleButton", foreground="black", background="black", font=("Helvetica", 12), padding=(40, 20))
 
         self.__frame2 = Frame(self.__frame1)
-        self.__frame2.pack(side=TOP, pady=250, padx=10)  # Move the comboboxes to the top
+        self.__frame2.pack(side=TOP, pady=250, padx=10)
 
         self.__text2 = Label(self.__frame2, text="Taille de la grille : ", font=("Helvetica", 12))
         self.__text2.grid(row=0, column=0, padx=5, pady=19)
@@ -64,61 +61,59 @@ class Acceuil:
         self.__align = ttk.Combobox(self.__frame3, textvariable=self.v2, values=align_values, state="readonly")
         self.__align.grid(row=1, column=2, padx=5)
 
-        self.__frame4 = Frame(self.__frame1, bg="black")  # Set the background color to black
-        self.__frame4.pack(side=BOTTOM, pady=50)  # Move the buttons to the bottom
+        self.__frame4 = Frame(self.__frame1, bg="black")
+        self.__frame4.pack(side=BOTTOM, pady=50)
 
-        start_button = ttk.Button(self.__frame4, text="Commencer", command=self.start_game)
+        start_button = ttk.Button(self.__frame4, text="Commencer", command=self.start_game, style="StyleButton")
         start_button.pack(side=LEFT, padx=20)
 
-        rules_button = ttk.Button(self.__frame4, text="Règles", command=self.show_rules)
+        rules_button = ttk.Button(self.__frame4, text="Règles", command=self.show_rules, style="StyleButton")
         rules_button.pack(side=LEFT, padx=20)
 
         self.__root1.mainloop()
 
 
+                                                                                                                                        
+    def show_rules(self):                                                                                                                  # Sert à afficher les règles si le bouton "Règles" est cliqué
+            rules_window = Toplevel(self.__root1)                                                                                          # Sert à créer une fenêtre qui ira se greffer par dessus la fenêtre principale
+            rules_window.title("Règles")                                                                                                   # Sert à définir le titre de la fenêtre
+            rules_window.config(bg="black")                                                                                                # Sert à mettre le fond de la feêntre en noir
 
-    def show_rules(self):
-            rules_window = Toplevel(self.__root1)
-            rules_window.title("Règles")
-            rules_window.config(bg="black")
+            rules_text = ("Règles du jeu :\n"
+                        "- Les deux joueurs vont jouer chacun leur tour.\n"
+                        "- Les joueurs peuvent déplacer leur pions qu'en L (comme le cavalier aux échecs).\n"
+                        "- La partie se fini si un des deux joueurs alignent le nombre de croix sélectionné ou si il ne peut plus se déplacer.") # Sert à définir le texte qui sera affiché sur la fenêtre 
 
-            rules_text = (
-                "Règles du jeu :\n"
-                "- Les deux joueurs vont jouer chacun leur tour.\n"
-                "- Les joueurs peuvent déplacer leur pions qu'en L (comme le cavalier aux échecs).\n"
-                "- La partie se fini si un des deux joueurs alignent le nombre de croix sélectionné ou si il ne peut plus se déplacer."
-            )
-
-            label = Label(rules_window, text=rules_text, padx=20, pady=20, bg="black", foreground="white")
-            label.pack()
+            label = Label(rules_window, text=rules_text, padx=20, pady=20, bg="black", foreground="white")                                       
+            label.pack()                                                                                                                         # Sert à afficher le texte avec un fond noir et une police blanche 
 
             close_button = Button(rules_window, text="Fermer", command=rules_window.destroy)
-            close_button.pack(pady=10)
+            close_button.pack(pady=10)                                                                                                           # Sert à créer et afficher un bouton qui ferme la page si on clique dessus
 
-    def start_game(self):
-            mixer.music.stop()
-            self.__root1.destroy()
-            Jeu(grid_size= self.v.get())
+    def start_game(self):                                                                                                                   # Sert à lancer la partie une fois le bouton "commencer" cliqué
+            mixer.music.stop()                                                                                                              # Sert à arreter la musique de la page d'acceuil
+            self.__root1.destroy()                                                                                                          # Sert à supprimer la fenêtre de la page d'acceuil
+            Jeu(grid_size= self.v.get(), align = self.v2.get())                                                                             # Sert à lancer la class Jeu avec comme variables les variables défini sur l'écran d'acceuil 
+
 class Jeu:
     
-    def __init__(self, grid_size):
+    def __init__(self, grid_size, align):
+        self.__align = align
         self.__grid_size = grid_size
         self.__joueur = 1
-        self.__turn = 0
+        self.__turn = 0                                         # Initialisation des variables 
 
-        mixer.init()
-        mixer.music.load("music/music2.mp3")
-        mixer.music.set_volume(1)
-        mixer.music.play(-1)
-
-        self.__cross_positions = {'joueur1': [], 'joueur2': []}
+        mixer.init()                                            # Sert à initier une musique sur la fenêtre de jeu
+        mixer.music.load("music/music2.mp3")                    # Sert à importer la musique 
+        mixer.music.set_volume(1)                               # Sert à définir le volume
+        mixer.music.play(-1)                                    # Sert à lancer la musique et faire en sorte qu'elle ne s'arrete jamais avec "-1"
 
         self.__etat_boutons = {}                                # création d'un dictionnaire pour gérer l'état des cases
 
         self.__dernier_bouton_clique = None                     # création d'une variable initialisé sur None pour détecter le dernier bouton cliqué et ainsi le transformer en croix
 
-        self.__root = Tk()
-        self.__root.title("Projet")
+        self.__root = Tk()                                      # Sert à initier tkinter
+        self.__root.title("Projet")                             # Sert à définir le nom de la page 
 
         self.__frame1 = Frame(self.__root, bg="black")
         self.__frame1.grid(row=0, column=0, columnspan=2)
@@ -163,13 +158,13 @@ class Jeu:
         self.__text3 = Label(self.__frame4, text="Nombres de pions à aligner : ")
         self.__text3.grid(row=0, column=0, columnspan=3)                                                               # Création et placement du texte au dessus des boutons
 
-        self.v2 = IntVar(value=5)
-        self.__case11 = ttk.Radiobutton(self.__frame4, variable=self.v2, value=4, text="4")
-        self.__case12 = ttk.Radiobutton(self.__frame4, variable=self.v2, value=5, text="5")                                # Création des boutons, utilisation des Boutons Radios
-        self.__case13 = ttk.Radiobutton(self.__frame4, variable=self.v2, value=6, text="6")
+        self.v2 = IntVar(value=align)
+        self.__case11 = ttk.Radiobutton(self.__frame4, variable=self.v2, value=4, text="4", command=self.update_grid)
+        self.__case12 = ttk.Radiobutton(self.__frame4, variable=self.v2, value=5, text="5", command=self.update_grid)   # Création des boutons, utilisation des Boutons Radios
+        self.__case13 = ttk.Radiobutton(self.__frame4, variable=self.v2, value=6, text="6", command=self.update_grid)
 
         self.__case11.grid(row=1, column=0)
-        self.__case12.grid(row=1, column=1)                                                                            # Placement des boutons dans le frame
+        self.__case12.grid(row=1, column=1)                                                                             # Placement des boutons dans le frame
         self.__case13.grid(row=1, column=2)
 
         self.__text4 = Label(self.__frame4, text=f"Joueur : {self.__joueur}")
@@ -203,60 +198,87 @@ class Jeu:
     def update_grid(self):                                                                                                      # Sert à modifier la grille en fonction de la taille choisie
         if messagebox.askquestion('Avertissement','Cette action va redémarrer la partie.\nConfirmer',icon ='warning')=='yes':   # Affiche une fênetre pour confirmer le changement
             self.__root.destroy()                                                                                               # Sert à supprimer le programme en cas de redémarrage
-            Jeu(self.v.get())
+            Jeu(self.v.get(), self.v2.get())
 
-    def valid_move(self, last_position, current_position):
-        last_row, last_col = last_position
-        current_row, current_col = current_position
+    def valid_move(self, last_position, current_position):                                                                      # Sert à vérifier les déplacements valident 
+        last_row, last_col = last_position                                                                                      # position actuelle 
+        current_row, current_col = current_position                                                                             # coordonnées de là ou l'on veut cliquer
 
         valid_positions = [
             (last_row - 2, last_col - 1), (last_row - 2, last_col + 1),
             (last_row - 1, last_col - 2), (last_row - 1, last_col + 2),
             (last_row + 1, last_col - 2), (last_row + 1, last_col + 2),
-            (last_row + 2, last_col - 1), (last_row + 2, last_col + 1)
+            (last_row + 2, last_col - 1), (last_row + 2, last_col + 1)                                                         # Liste des déplacements possibles
         ]
 
-        return (current_row, current_col) in valid_positions
+        return (current_row, current_col) in valid_positions                                                                   # Sert à valider le déplacement, si déplacement non valide, le pion doit être rejoué
 
-    def check_end_game(self):
-        if self.__turn >= 2:
-            player_positions = (
-                Pion.get_button_rouge_position if self.__joueur == 1 else Pion.get_button_bleu_position
-            )
-            current_position = player_positions(self.__dernier_bouton_clique)
+    def win_con_align(self):
+            i=0
+            j=0
+            l=[[" " for i in range(self.__grid_size)] for j in range(self.__grid_size)]
+            
+            def getColor(image):
+                if int(str(image)[7:])%4==0:
+                    return "R"
+                else:
+                    return "B"
+            
+            for k in self.__etat_boutons.items():
+                if k[1]["image"] is not None:
+                    l[i][j]=getColor(k[1]["image"])
+                i+=1
+                if i==self.__grid_size:
+                    i=0
+                    j+=1
 
-            if self.check_cross_alignment(current_position):
-                self.end2()
+            def check_horizontal(elem, char, n):
+                rows, cols = len(elem), len(elem[0])
+                for row in range(rows):
+                    for col in range(cols - n + 1):
+                        if all(elem[row][col + i] == char for i in range(n)):
+                            return True
+                return False
 
-        return True
+            def check_vertical(elem, char, n):
+                rows, cols = len(elem), len(elem[0])
+                for row in range(rows - n + 1):
+                    for col in range(cols):
+                        if all(elem[row + i][col] == char for i in range(n)):
+                            return True
+                return False
 
-    def check_cross_alignment(self, current_position):
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+            def check_diagonal(elem, char, n):
+                rows, cols = len(elem), len(elem[0])
+                for row in range(rows - n + 1):
+                    for col in range(cols - n + 1):
+                        if all(elem[row + i][col + i] == char for i in range(n)):
+                            return True
+                return False
 
-    def check_cross_alignment(self, current_position):
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+            def check_other_diagonal(elem, char, n):
+                rows, cols = len(elem), len(elem[0])
+                for row in range(rows - n + 1):
+                    for col in range(n - 1, cols):
+                        if all(elem[row + i][col - i] == char for i in range(n)):
+                            return True
+                return False
 
-        for direction in directions:
-            count = 0  # Initialize count to 0
+            def detect_alignment(elem, char, n):
+                if check_horizontal(elem, char, n) or check_diagonal(elem, char, n) or check_vertical(elem, char, n) or check_other_diagonal(elem, char, n):
+                    return True
+                return False
+            self.__align = self.v2.get()
+            N = self.__align 
+            if detect_alignment(l,"R",N) or detect_alignment(l,"B",N): self.end_align()
+    
+    def get_button_by_position(self, row, col):
+        for button, self.data in self.__etat_boutons.items():
+            button_row, button_col = Pion.get_button_rouge_position(button) if self.__joueur == 1 else Pion.get_button_bleu_position(button)
+            if button_row == row and button_col == col:
+                return button
 
-            for factor in [-1, 1]:
-                i, j = current_position
-                for _ in range(5):  # Check the next 5 positions in the specified direction
-                    i += factor * direction[0]
-                    j += factor * direction[1]
-
-                    if not (0 <= i < self.__grid_size and 0 <= j < self.__grid_size):
-                        break  # Break if we go out of bounds
-
-                    if (i, j) in self.__cross_positions[f'joueur{3 - self.__joueur}']:
-                        count += 1
-
-                    if count >= 5:
-                        return True
-
-        return False
-
-    def check_end_game2(self):
+    def win_con_block(self):
         if self.__turn >= 2:
             player_positions = (
                 Pion.get_button_rouge_position if self.__joueur == 1 else Pion.get_button_bleu_position
@@ -267,7 +289,7 @@ class Jeu:
                 i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
                 if info['etat'] == 0 and self.valid_move(current_position, (i, j)):
                     return False
-        self.end()
+        self.end_block()
 
     def circle_placement(self, event):
         button = event.widget
@@ -331,35 +353,22 @@ class Jeu:
         self.__text4.config(text=f"Joueur : {self.__joueur}")                                                                   # Sert à modifier l'affichage "Joueur : " en alternant 1 et 2
         self.__text5.config(text=f"Tour n° : {self.__turn+1}")                                                                  # Sert à ajouter 1 à chaque tour pour l'affichage du Tour)
             
-        if self.__turn >= 3:
-            # Add cross positions to the dictionary
-            i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
-            if self.__joueur == 1:
-                self.__cross_positions['joueur2'].append((i, j))
-            elif self.__joueur == 2:
-                self.__cross_positions['joueur1'].append((i, j))
-            
-            self.check_end_game()
-            self.check_end_game2()
+        if self.__turn >= 2:
+            self.win_con_align()
+            self.win_con_block()
 
-            print(self.__cross_positions)
-
-    def end(self):
+    def end_block(self):
         if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
             self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
-            Jeu(self.v.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
+            Jeu(self.v.get(), self.v2.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
         else :
             self.__root.destroy()                                                                                                                                           # Sert à fermer le programme en cas de réponse négative                                                                       
 
-    def end2(self):
+    def end_align(self):
         if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {3 - self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
             self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
-            Jeu(self.v.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
+            Jeu(self.v.get(), self.v2.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
         else :
             self.__root.destroy()                                                                                                                                           # Sert à fermer le programme en cas de réponse négative   
     
-    def start_game():
-        Acceuil.__root1.destroy()
-        Jeu()
-
 acceuil = Acceuil()      
