@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter import ttk
 from PIL import Image, ImageTk
 from pygame import mixer
+import pygame
 
 class Pion:
 
@@ -24,18 +25,25 @@ class Acceuil:
     def __init__(self):
         self.__root1 = Tk()                                    # Sert à initiliser le tkinter
         self.__root1.title("Acceuil")                          # Sert à définir le titre de la page
-        self.__root1.geometry("1000x1000")                     # Sert à définir les dimensions de la page 
+        self.__root1.geometry("900x900")                     # Sert à définir les dimensions de la page 
 
         mixer.init()                                            # Sert à initier une musique sur la fenêtre de jeu
         mixer.music.load("music/music1.mp3")                    # Sert à importer la musique 
-        mixer.music.set_volume(1)                               # Sert à définir le volume
+        mixer.music.set_volume(0.1)                             # Sert à définir le volume
         mixer.music.play(-1)                                    # Sert à lancer la musique et faire en sorte qu'elle ne s'arrete jamais avec "-1"
 
-        self.__frame1 = Frame(self.__root1, bg="black")
+        imagebg = Image.open("img/bgaccueil.png")
+        resized_image = imagebg.resize((1000,1000))
+        imagebg1 = ImageTk.PhotoImage(resized_image) 
+                                                                 
+        self.__frame1 = Frame(self.__root1)
         self.__frame1.pack(fill=BOTH, expand=True)              # Sert à créer et afficher le frame 1 et faire en sorte qu'il fasse toute la page
 
+        self.bg_label = Label(self.__frame1, image= imagebg1)
+        self.bg_label.place(relwidth=1, relheight=1)
+
         style = ttk.Style()
-        style.configure("StyleButton", foreground="black", background="black", font=("Helvetica", 12), padding=(40, 20))
+        style.configure("TButton", foreground="black", font=("Helvetica", 12), padding=(40, 20))
 
         self.__frame2 = Frame(self.__frame1)
         self.__frame2.pack(side=TOP, pady=250, padx=10)
@@ -61,14 +69,15 @@ class Acceuil:
         self.__align = ttk.Combobox(self.__frame3, textvariable=self.v2, values=align_values, state="readonly")
         self.__align.grid(row=1, column=2, padx=5)
 
-        self.__frame4 = Frame(self.__frame1, bg="black")
+        self.__frame4 = Frame(self.__frame1, bg='')
         self.__frame4.pack(side=BOTTOM, pady=50)
 
-        start_button = ttk.Button(self.__frame4, text="Commencer", command=self.start_game, style="StyleButton")
-        start_button.pack(side=LEFT, padx=20)
+        start_button = ttk.Button(self.__frame4, text="Commencer", command=self.start_game)
+        start_button.pack(side=LEFT)
+        
+        rules_button = ttk.Button(self.__frame4, text="Règles", command=self.show_rules)
+        rules_button.pack(side=RIGHT)
 
-        rules_button = ttk.Button(self.__frame4, text="Règles", command=self.show_rules, style="StyleButton")
-        rules_button.pack(side=LEFT, padx=20)
 
         self.__root1.mainloop()
 
@@ -105,7 +114,7 @@ class Jeu:
 
         mixer.init()                                            # Sert à initier une musique sur la fenêtre de jeu
         mixer.music.load("music/music2.mp3")                    # Sert à importer la musique 
-        mixer.music.set_volume(1)                               # Sert à définir le volume
+        mixer.music.set_volume(0.1)                               # Sert à définir le volume
         mixer.music.play(-1)                                    # Sert à lancer la musique et faire en sorte qu'elle ne s'arrete jamais avec "-1"
 
         self.__etat_boutons = {}                                # création d'un dictionnaire pour gérer l'état des cases
@@ -198,7 +207,14 @@ class Jeu:
     def update_grid(self):                                                                                                      # Sert à modifier la grille en fonction de la taille choisie
         if messagebox.askquestion('Avertissement','Cette action va redémarrer la partie.\nConfirmer',icon ='warning')=='yes':   # Affiche une fênetre pour confirmer le changement
             self.__root.destroy()                                                                                               # Sert à supprimer le programme en cas de redémarrage
-            Jeu(self.v.get(), self.v2.get())
+            Jeu(self.v.get(), self.v2.get())                                                                                    # Sert à initialiser la nouvelle grille avec les valeurs séléctionnées 
+
+    def music_play(self):
+        pygame.init()
+        pygame.mixer.init()
+        son = pygame.mixer.Sound('music/music3.mp3')
+        channel = pygame.mixer.Channel(0)
+        channel.play(son)
 
     def valid_move(self, last_position, current_position):                                                                      # Sert à vérifier les déplacements valident 
         last_row, last_col = last_position                                                                                      # position actuelle 
@@ -216,39 +232,39 @@ class Jeu:
     def win_con_align(self):
             i=0
             j=0
-            l=[[" " for i in range(self.__grid_size)] for j in range(self.__grid_size)]
-            
-            def getColor(image):
-                if int(str(image)[7:])%4==0:
-                    return "R"
+            l=[[" " for i in range(self.__grid_size)] for j in range(self.__grid_size)]                                         #Crée une liste dans la console
+
+            def getColor(image):                                                                                                #Renvoie dans la console l'emplacement des croix rouges et bleues
+                if int(str(image)[7:])%4==1:                                                                                    
+                    return "R"                                                                                                  
                 else:
                     return "B"
             
             for k in self.__etat_boutons.items():
                 if k[1]["image"] is not None:
-                    l[i][j]=getColor(k[1]["image"])
+                    l[i][j]=getColor(k[1]["image"])                                                                             #Détecte les images présentes dans le jeu et retranscris dans la console
                 i+=1
-                if i==self.__grid_size:
+                if i==self.__grid_size:                                                                                         #Permet de changer de colonne
                     i=0
                     j+=1
 
-            def check_horizontal(elem, char, n):
-                rows, cols = len(elem), len(elem[0])
-                for row in range(rows):
-                    for col in range(cols - n + 1):
-                        if all(elem[row][col + i] == char for i in range(n)):
-                            return True
-                return False
+            def check_horizontal(elem, char, n):                                                                                #Permet de voir si des croix sont alignés horizontalement
+                    rows, cols = len(elem), len(elem[0])
+                    for row in range(rows):                                                                                         #Parcourir le tableau
+                        for col in range(cols - n + 1):                                                                             #""
+                            if all(elem[row][col + i] == char for i in range(n)):                                                   #Regarde si les croix sont alignés
+                                return True
+                    return False
 
-            def check_vertical(elem, char, n):
-                rows, cols = len(elem), len(elem[0])
-                for row in range(rows - n + 1):
-                    for col in range(cols):
-                        if all(elem[row + i][col] == char for i in range(n)):
-                            return True
-                return False
+            def check_vertical(elem, char, n):                                                                                  #Permet de voir si des croix sont alignés verticalement
+                    rows, cols = len(elem), len(elem[0])
+                    for row in range(rows - n + 1):
+                        for col in range(cols):
+                            if all(elem[row + i][col] == char for i in range(n)):
+                                return True
+                    return False
 
-            def check_diagonal(elem, char, n):
+            def check_diagonal(elem, char, n):                                                                                  #Permet de voir si des croix sont alignés diagonalement d'en bas a gauche d'en haut a droite                   
                 rows, cols = len(elem), len(elem[0])
                 for row in range(rows - n + 1):
                     for col in range(cols - n + 1):
@@ -256,7 +272,7 @@ class Jeu:
                             return True
                 return False
 
-            def check_other_diagonal(elem, char, n):
+            def check_other_diagonal(elem, char, n):                                                                            #Permet de voir si des croix sont alignés diagonalement d'en haut a gauche d'en bas a droite
                 rows, cols = len(elem), len(elem[0])
                 for row in range(rows - n + 1):
                     for col in range(n - 1, cols):
@@ -264,38 +280,20 @@ class Jeu:
                             return True
                 return False
 
-            def detect_alignment(elem, char, n):
-                if check_horizontal(elem, char, n) or check_diagonal(elem, char, n) or check_vertical(elem, char, n) or check_other_diagonal(elem, char, n):
+            def detect_alignment(elem, char, n):                                                                                #Détecte si il y a un alignement
+                if check_horizontal(elem, char, n) or check_diagonal(elem, char, n) or check_vertical(elem, char, n) or check_other_diagonal(elem, char, n):    #Cherche si un des alignements renvoie True
                     return True
                 return False
             self.__align = self.v2.get()
-            N = self.__align 
-            if detect_alignment(l,"R",N) or detect_alignment(l,"B",N): self.end_align()
-    
-    def get_button_by_position(self, row, col):
-        for button, self.data in self.__etat_boutons.items():
-            button_row, button_col = Pion.get_button_rouge_position(button) if self.__joueur == 1 else Pion.get_button_bleu_position(button)
-            if button_row == row and button_col == col:
-                return button
+            N = self.__align
+            if detect_alignment(l,"R",N) or detect_alignment(l,"B",N): self.end_align()                                                                         #Arrête la partie si le nombre choisi de croix est aligné
 
-    def win_con_block(self):
-        if self.__turn >= 2:
-            player_positions = (
-                Pion.get_button_rouge_position if self.__joueur == 1 else Pion.get_button_bleu_position
-            )
-            current_position = player_positions(self.__dernier_bouton_clique)
-
-            for button, info in self.__etat_boutons.items():
-                i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
-                if info['etat'] == 0 and self.valid_move(current_position, (i, j)):
-                    return False
-        self.end_block()
 
     def circle_placement(self, event):
         button = event.widget
 
-        if self.__etat_boutons.get(button) and self.__etat_boutons[button]['etat'] == 1:
-            return
+        if self.__etat_boutons[button]['etat'] == 1:
+            return                                                                                                             # Sert à nous faire rejouer si on clique sur une croix
 
         if self.__joueur == 1 and self.__dernier_bouton_clique is not None:
             last_position = Pion.get_button_rouge_position(self.__avantdernier_bouton_clique)
@@ -327,7 +325,7 @@ class Jeu:
             self.__dernier_bouton_clique = button                                                                               # Servent à mettre a jour le rond rouge précedent en croix rouge
 
         elif self.__joueur == 2:
-            pion_bleu = Image.open("img/sans_titre.png")
+            pion_bleu = Image.open("img/cercle_bleu1.png")
             pion_bleu1 = ImageTk.PhotoImage(pion_bleu)                                                                          # Servent à importer l'image du cercle Bleu
             button.configure(image=pion_bleu1)
             button.image = pion_bleu1                                                                                           # Servent à appliquer l'image sur le bouton cliqué
@@ -353,18 +351,45 @@ class Jeu:
         self.__text4.config(text=f"Joueur : {self.__joueur}")                                                                   # Sert à modifier l'affichage "Joueur : " en alternant 1 et 2
         self.__text5.config(text=f"Tour n° : {self.__turn+1}")                                                                  # Sert à ajouter 1 à chaque tour pour l'affichage du Tour)
             
+        self.music_play()
+
         if self.__turn >= 2:
             self.win_con_align()
             self.win_con_block()
 
+    def win_con_block(self):                                                                                                                                    #Vérifie si un joueur ne peut plus bouger
+        if self.__turn >= 2:
+            player_positions = (
+                Pion.get_button_rouge_position if self.__joueur == 1 else Pion.get_button_bleu_position
+            )
+            current_position = player_positions(self.__dernier_bouton_clique)
+
+            for button, info in self.__etat_boutons.items():
+                i, j = int(button.place_info()['y']) // 70, int(button.place_info()['x']) // 70
+                if info['etat'] == 0 and self.valid_move(current_position, (i, j)):
+                    return False
+        self.end_block()
+
     def end_block(self):
+        mixer.music.stop()                                                      # Stop la musique
+        mixer.init()
+        mixer.music.load("music/music4.mp3")
+        mixer.music.set_volume(1)
+        mixer.music.play()                                                      # Lancer la musique de victoire
+
         if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
             self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
             Jeu(self.v.get(), self.v2.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
         else :
             self.__root.destroy()                                                                                                                                           # Sert à fermer le programme en cas de réponse négative                                                                       
 
-    def end_align(self):
+    def end_align(self):                                                        # Stopper la musique
+        mixer.music.stop()
+        mixer.init()
+        mixer.music.load("music/music4.mp3")
+        mixer.music.set_volume(1)
+        mixer.music.play()                                                      # Lancer la musique de victoire
+
         if messagebox.askquestion('Fin de la partie',f'Partie terminée : Victoire du joueur {3 - self.__joueur}\n\nVoulez vouz rejouer ?',icon ='question')=='yes':
             self.__root.destroy()                                                                                                                                           # Sert à supprimer le programme en cas de redémarrage
             Jeu(self.v.get(), self.v2.get())                                                                                                                                               # Sert à remettre le Tour à 1 en cas de redémarrage de la partie
